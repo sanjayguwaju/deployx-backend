@@ -5,6 +5,9 @@ import { Contract } from "../../models/Contract";
 import { Candidate } from "../../models/Candidate";
 import { AuditLog } from "../../models/AuditLog";
 import { sendSuccess, sendError } from "../../utils/response";
+import { Request } from "express";
+import { generatePdf } from "../../utils/pdf.service";
+import { Tenant } from "../../models/Tenant";
 
 export async function getTemplates(req: AuthRequest, res: Response) {
   const templates = await ContractTemplate.find({ tenantId: req.user!.tenantId });
@@ -91,4 +94,78 @@ export async function getContractStatus(req: AuthRequest, res: Response) {
   const contract = await Contract.findOne({ _id: req.params.id, tenantId: req.user!.tenantId });
   if (!contract) return sendError(res, 404, "Contract not found");
   return sendSuccess(res, contract);
+}
+
+// Phase 13: Public Document Signing
+export async function getPublicContract(req: Request, res: Response) {
+  // In a real app, verify a hash/token instead of just ID
+  const contract = await Contract.findById(req.params.id)
+    .populate("candidateId", "firstName lastName passportNumber")
+    .populate("employerId", "companyName");
+    
+  if (!contract) return sendError(res, 404, "Contract not found");
+  
+  return sendSuccess(res, {
+    _id: contract._id,
+    signatureStatus: contract.signatureStatus,
+    pdfUrl: contract.pdfUrl,
+    candidate: contract.candidateId,
+    employer: contract.employerId,
+    signatures: contract.signatures
+  });
+}
+
+export async function signPublicContract(req: Request, res: Response) {
+  const { signatureUrl, signerType } = req.body;
+  if (!signatureUrl) return sendError(res, 400, "Signature Base64 is required");
+
+  const contract = await Contract.findById(req.params.id);
+  if (!contract) return sendError(res, 404, "Contract not found");
+
+  contract.signatures.push({
+    signerType: signerType || "candidate",
+    signerId: contract.candidateId as any, // fallback
+    signatureUrl,
+    signedAt: new Date(),
+    ipAddress: req.ip
+  });
+
+  const hasCandidate = contract.signatures.some(s => s.signerType === "candidate");
+  const hasEmployer = contract.signatures.some(s => s.signerType === "employer");
+
+  if (hasCandidate && hasEmployer) {
+    contract.signatureStatus = "fully_signed";
+  } else if (hasCandidate) {
+    contract.signatureStatus = "signed_candidate";
+  } else if (hasEmployer) {
+    contract.signatureStatus = "signed_employer";
+  }
+
+  await contract.save();
+  return sendSuccess(res, contract, "Contract successfully signed!");
+}
+
+export async function downloadContractPdf(req: Request, res: Response) {
+  try {
+    const contract = await Contract.findById(req.params.id)
+      .populate("candidateId")
+      .populate("employerId");
+      
+    if (!contract) return res.status(404).json({ success: false, message: "Contract not found" });
+
+    const tenant = await Tenant.findById(contract.tenantId);
+
+    const pdfBuffer = await generatePdf("employment-contract", {
+      contract,
+      tenant,
+      candidate: contract.candidateId,
+      employer: contract.employerId
+    });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=contract-${contract._id}.pdf`);
+    return res.send(pdfBuffer);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Failed to generate PDF" });
+  }
 }

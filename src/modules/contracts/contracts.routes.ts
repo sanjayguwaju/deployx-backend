@@ -6,10 +6,19 @@ import {
   generateContract, 
   sendContract, 
   signContract, 
-  getContractStatus 
+  getContractStatus,
+  getPublicContract,
+  signPublicContract,
+  downloadContractPdf
 } from "./contracts.controller";
 
 const router = Router();
+
+// Phase 13: Public Routes (No Auth Required)
+router.get("/:id/public", getPublicContract);
+router.post("/:id/public/sign", signPublicContract);
+router.get("/:id/pdf", downloadContractPdf);
+
 router.use(authenticate);
 
 router.get("/templates", authorize("read", "ContractTemplate"), getTemplates);
