@@ -52,6 +52,7 @@ import uploadRoutes from "./modules/upload/upload.routes";
 import systemRoutes from "./modules/system/system.routes";
 import featureFlagsRoutes from "./modules/feature-flags/feature-flags.routes";
 import onboardingRoutes from "./modules/onboarding/onboarding.routes";
+import whatsappRoutes from "./modules/whatsapp/whatsapp.routes";
 // Phase 2 — Department Modules
 import healthPostRoutes from "./modules/health-posts/health-posts.routes";
 import { healthInventoryRouter, educationInventoryRouter, agricultureInventoryRouter } from "./modules/inventory/inventory.routes";
@@ -176,6 +177,7 @@ v1.use("/upload",            uploadRoutes);
 v1.use("/system",            systemRoutes);
 v1.use("/feature-flags",     featureFlagsRoutes);
 v1.use("/onboarding",        onboardingRoutes);
+v1.use("/whatsapp",          whatsappRoutes);
 // Phase 2 — Department modules
 v1.use("/health-posts",            healthPostRoutes);
 v1.use("/health-inventory",        healthInventoryRouter);

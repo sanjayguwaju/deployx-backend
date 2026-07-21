@@ -7,6 +7,35 @@ import { User } from "../models/User";
 import { Candidate } from "../models/Candidate";
 import { Commission } from "../models/Commission";
 import { ComplianceCheck } from "../models/ComplianceCheck";
+import { WhatsappInstance } from "../models/WhatsappInstance";
+import axios from "axios";
+
+const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || "http://localhost:8080";
+const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || "global_api_key";
+
+async function sendWhatsappMessage(tenantId: string, phone: string, text: string) {
+  if (!phone) return;
+  try {
+    const wp = await WhatsappInstance.findOne({ tenantId, status: "connected" });
+    if (!wp) return; // No connected WhatsApp instance for this agency
+    
+    // Format phone number to international format, assuming Nepal +977 or UAE etc.
+    const cleanPhone = phone.replace(/[^0-9]/g, "");
+    
+    await axios.post(
+      `${EVOLUTION_API_URL}/message/sendText/${wp.instanceName}`,
+      {
+        number: cleanPhone,
+        options: { delay: 1200, presence: "composing" },
+        textMessage: { text }
+      },
+      { headers: { apikey: EVOLUTION_API_KEY } }
+    );
+    logger.info(`WhatsApp message sent to ${cleanPhone}`);
+  } catch (error) {
+    logger.error(`Failed to send WhatsApp to ${phone}`, error);
+  }
+}
 
 const workflowQueue = new Queue("workflow-automation", {
   redis: env.REDIS_URL,
@@ -45,6 +74,16 @@ workflowQueue.process(async (job) => {
       });
     }
     logger.info(`[Notification] Employer notified: Candidate for pipeline ${pipelineId} moved to Visa stage.`);
+
+    // Send WhatsApp Alert
+    const candidate = await Candidate.findById(pipeline.candidateId);
+    if (candidate && candidate.phone) {
+      await sendWhatsappMessage(
+        tenantId, 
+        candidate.phone, 
+        `Hello ${candidate.firstName}, great news! Your Medical Report has been approved. We are now initiating your Visa processing.`
+      );
+    }
   }
 
   if (newStage === "medical_failed") {
@@ -62,6 +101,16 @@ workflowQueue.process(async (job) => {
     await pipeline.save();
     
     logger.info(`[Notification] HR notified: Candidate for pipeline ${pipelineId} rejected due to medical failure.`);
+
+    // Send WhatsApp Alert
+    const candidate = await Candidate.findById(pipeline.candidateId);
+    if (candidate && candidate.phone) {
+      await sendWhatsappMessage(
+        tenantId, 
+        candidate.phone, 
+        `Hello ${candidate.firstName}, unfortunately your Medical Report did not pass the requirements. Please contact the agency for more details.`
+      );
+    }
   }
 
   if (newStage === "deployment_confirmed") {
@@ -104,6 +153,14 @@ workflowQueue.process(async (job) => {
         status: "pending"
       });
       logger.info(`[Commission] Created pending commission for agent ${candidate.referringAgentId}`);
+    }
+
+    if (candidate && candidate.phone) {
+      await sendWhatsappMessage(
+        tenantId, 
+        candidate.phone, 
+        `Hello ${candidate.firstName}, congratulations! Your deployment has been confirmed. Have a safe flight!`
+      );
     }
   }
 });
