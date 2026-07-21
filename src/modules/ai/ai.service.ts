@@ -1,4 +1,7 @@
 // Mock implementation of Claude API integrations for MVP
+import { Candidate } from "../../models/Candidate";
+import { Pipeline } from "../../models/Pipeline";
+import { WhatsappService } from "../../utils/whatsapp.service";
 
 export class AIService {
   
@@ -121,5 +124,55 @@ export class AIService {
       ],
       missingDocuments: ["Medical Report"]
     };
+  }
+
+  /**
+   * Phase 12: WhatsApp Chatbot Logic
+   * Handles incoming text from a candidate, resolves identity, gathers context, and sends a reply.
+   */
+  static async handleIncomingWhatsappMessage(tenantId: string, phone: string, message: string) {
+    // 1. Identity Resolution
+    const cleanPhone = phone.replace(/[^0-9]/g, "");
+    
+    // We try to find a candidate that has this phone number
+    // Note: Phone numbers in DB might be formatted differently, using regex or partial match for MVP
+    const candidate = await Candidate.findOne({ 
+      tenantId, 
+      phone: { $regex: new RegExp(cleanPhone.slice(-10) + "$", "i") } 
+    });
+
+    let responseText = "Hello! I am the agency's virtual assistant. We have received your message and an agent will contact you shortly.";
+
+    if (candidate) {
+      // 2. Context Gathering
+      const pipeline = await Pipeline.findOne({ candidateId: candidate._id, tenantId }).sort("-createdAt");
+      
+      // 3. Intent Parsing (Smart Template Engine)
+      const q = message.toLowerCase();
+      
+      if (q.includes("status")) {
+        if (pipeline) {
+          responseText = `Hello ${candidate.firstName}, your current application status is: *${pipeline.stage.toUpperCase()}*. We will update you when there is progress.`;
+        } else {
+          responseText = `Hello ${candidate.firstName}, your profile is registered but you haven't been assigned to a job demand yet.`;
+        }
+      } 
+      else if (q.includes("document") || q.includes("missing")) {
+        responseText = `Hello ${candidate.firstName}, please ensure you have submitted your valid Passport, Medical Report, and Police Clearance. You can bring them to our office.`;
+      }
+      else if (q.includes("flight") || q.includes("ticket")) {
+        if (pipeline && pipeline.stage === "deployment") {
+          responseText = `Hello ${candidate.firstName}, your flight ticket has been booked! We will send the PDF shortly.`;
+        } else {
+          responseText = `Hello ${candidate.firstName}, your flight hasn't been scheduled yet. You are currently in the ${pipeline ? pipeline.stage : 'initial'} stage.`;
+        }
+      }
+      else {
+        responseText = `Hello ${candidate.firstName}! I received your message. If you are asking about your status or documents, just text "status" or "documents". Otherwise, an agent will reply soon.`;
+      }
+    }
+
+    // 4. Response Generation via WhatsApp Service
+    await WhatsappService.sendTextMessage(tenantId, phone, responseText);
   }
 }

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { WhatsappInstance } from "../../models/WhatsappInstance";
 import axios from "axios";
+import { AIService } from "../ai/ai.service";
 
 // Evolution API configuration (ideally from environment variables)
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || "http://localhost:8080";
@@ -118,9 +119,28 @@ export const webhook = async (req: Request, res: Response) => {
   }
 
   if (payload.event === "messages.upsert") {
-    // Basic auto-responder or AI integration would go here
-    const message = payload.data?.message;
-    console.log("New WhatsApp message received:", message);
+    // Phase 12: Chatbot Integration
+    try {
+      const messages = payload.data?.messages;
+      if (messages && messages.length > 0) {
+        for (const message of messages) {
+          // Only process messages that are text from a remote JID (not from me)
+          if (!message.key.fromMe && message.message?.conversation) {
+            const phone = message.key.remoteJid.split('@')[0];
+            const text = message.message.conversation;
+            
+            // Find the tenant associated with this instance
+            const instanceName = payload.instance;
+            const wp = await WhatsappInstance.findOne({ instanceName });
+            if (wp && wp.tenantId) {
+              await AIService.handleIncomingWhatsappMessage(wp.tenantId.toString(), phone, text);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error processing AI Webhook", e);
+    }
   }
 
   res.status(200).send("OK");
