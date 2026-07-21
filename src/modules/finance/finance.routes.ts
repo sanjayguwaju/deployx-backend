@@ -9,7 +9,8 @@ import {
   createExpense,
   getCommissions,
   approveCommission,
-  markCommissionPaid
+  markCommissionPaid,
+  downloadInvoicePdf
 } from "./finance.controller";
 
 const router = Router();
@@ -19,6 +20,7 @@ router.use(authenticate);
 router.get("/invoices", authorize("read", "Invoice"), getInvoices);
 router.post("/invoices", authorize("create", "Invoice"), createInvoice);
 router.patch("/invoices/:id/mark-paid", authorize("update", "Invoice"), markInvoicePaid);
+router.get("/invoices/:id/pdf", authorize("read", "Invoice"), downloadInvoicePdf);
 
 // Expenses
 router.get("/expenses", authorize("read", "Expense"), getExpenses);
