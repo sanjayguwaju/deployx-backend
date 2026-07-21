@@ -1,7 +1,7 @@
 {
-  "name": "palika-os-api",
+  "name": "deployx-backend",
   "version": "1.0.0",
-  "description": "PalikaOS — Express + Mongoose + CASL",
+  "description": "DeployX — Express + Mongoose + CASL",
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
