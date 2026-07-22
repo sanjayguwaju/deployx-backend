@@ -12,7 +12,9 @@ import { WhatsappService } from "../utils/whatsapp.service";
 
 
 const workflowQueue = new Queue("workflow-automation", {
-  redis: env.REDIS_URL,
+  redis: env.REDIS_URL
+    ? env.REDIS_URL
+    : { host: env.REDIS_HOST, port: env.REDIS_PORT },
 });
 
 // Phase 3 Automation: 

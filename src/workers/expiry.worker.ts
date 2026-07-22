@@ -6,7 +6,9 @@ import { Visa } from "../models/Visa";
 import { License } from "../models/License";
 
 const expiryQueue = new Queue("expiry-jobs", {
-  redis: env.REDIS_URL,
+  redis: env.REDIS_URL
+    ? env.REDIS_URL
+    : { host: env.REDIS_HOST, port: env.REDIS_PORT },
 });
 
 // Run daily at midnight
