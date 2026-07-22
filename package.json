@@ -8,8 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "swagger": "ts-node swagger.ts",
-    "seed": "ts-node src/scripts/seeders/run.ts",
-    "seed:clear": "ts-node src/scripts/seeders/run.ts --clear",
+    "seed": "ts-node src/utils/seed-deployx.ts",
+    "seed:clear": "ts-node src/utils/seed-deployx.ts --clear",
     "lint": "eslint src --ext .ts",
     "postinstall": "npm run build"
   },
