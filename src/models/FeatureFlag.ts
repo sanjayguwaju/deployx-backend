@@ -12,7 +12,7 @@ export interface IFeatureFlag extends Document {
 
 const featureFlagSchema = new Schema<IFeatureFlag>(
   {
-    tenantId: { type: Schema.Types.ObjectId, ref: "Municipality", required: false },
+    tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", required: false },
     key: { type: String, required: true },
     name: { type: String, required: true },
     description: String,

@@ -22,7 +22,6 @@ import rbacRoutes from "./modules/rbac/rbac.routes";
 import wardRoutes from "./modules/offices/offices.routes";
 import citizenRoutes from "./modules/candidates/candidates.routes";
 import employerRoutes from "./modules/employers/employers.routes";
-import correspondenceRoutes from "./modules/correspondence/correspondence.routes";
 import demandRoutes from "./modules/demands/demands.routes";
 import pipelineRoutes from "./modules/pipeline/pipeline.routes";
 import taskRoutes from "./modules/tasks/tasks.routes";
@@ -43,8 +42,6 @@ import analyticsRoutes from "./modules/analytics/analytics.routes";
 import reportsRoutes from "./modules/reports/reports.routes";
 import aiRoutes from "./modules/ai/ai.routes";
 import superadminRoutes from "./modules/superadmin/superadmin.routes";
-import registrationRoutes from "./modules/registration/registration.routes";
-import complaintRoutes from "./modules/complaints/complaints.routes";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes";
 import auditRoutes from "./modules/audit/audit.routes";
 import notificationRoutes from "./modules/notifications/notifications.routes";
@@ -53,23 +50,6 @@ import systemRoutes from "./modules/system/system.routes";
 import featureFlagsRoutes from "./modules/feature-flags/feature-flags.routes";
 import onboardingRoutes from "./modules/onboarding/onboarding.routes";
 import whatsappRoutes from "./modules/whatsapp/whatsapp.routes";
-// Phase 2 — Department Modules
-import healthPostRoutes from "./modules/health-posts/health-posts.routes";
-import { healthInventoryRouter, educationInventoryRouter, agricultureInventoryRouter } from "./modules/inventory/inventory.routes";
-import schoolRoutes from "./modules/schools/schools.routes";
-import infraProjectRoutes from "./modules/infra-projects/infra-projects.routes";
-import livestockRoutes from "./modules/livestock/livestock.routes";
-import disasterIncidentRoutes from "./modules/disaster-incidents/disaster-incidents.routes";
-import reliefApplicationRoutes from "./modules/relief-applications/relief-applications.routes";
-import adminDocumentRoutes from "./modules/admin-documents/admin-documents.routes";
-import approvalRoutes from "./modules/approvals/approval.routes";
-import ledgerRoutes from "./modules/ledger/ledger.routes";
-// Old finance routers removed for Phase 6
-import sifarisRoutes from "./modules/sifaris/sifaris.routes";
-import subscriptionsRoutes from "./modules/subscriptions/subscriptions.routes";
-import vitalEventsRoutes from "./modules/vital-events/vital-events.routes";
-import taxEngineRoutes from "./modules/tax-engine/tax-engine.routes";
-import citizenPortalRoutes from "./modules/candidate-portal/candidate-portal.routes";
 
 const app = express();
 
@@ -134,7 +114,6 @@ v1.use("/roles",             rbacRoutes);
 v1.use("/offices",             wardRoutes);
 v1.use("/candidates",          citizenRoutes);
 v1.use("/employers",           employerRoutes);
-v1.use("/correspondence",    correspondenceRoutes);
 v1.use("/demands",           demandRoutes);
 v1.use("/pipeline",          pipelineRoutes);
 v1.use("/tasks",             taskRoutes);
@@ -168,8 +147,6 @@ v1.use("/ai",                aiRoutes);
 // Phase 9: SaaS Admin Panel
 v1.use("/admin",             superadminRoutes);
 
-v1.use("/registration",      registrationRoutes);
-v1.use("/complaints",        complaintRoutes);
 v1.use("/dashboard",         dashboardRoutes);
 v1.use("/audit-logs",        auditRoutes);
 v1.use("/notifications",     notificationRoutes);
@@ -178,26 +155,6 @@ v1.use("/system",            systemRoutes);
 v1.use("/feature-flags",     featureFlagsRoutes);
 v1.use("/onboarding",        onboardingRoutes);
 v1.use("/whatsapp",          whatsappRoutes);
-// Phase 2 — Department modules
-v1.use("/health-posts",            healthPostRoutes);
-v1.use("/health-inventory",        healthInventoryRouter);
-v1.use("/education-inventory",     educationInventoryRouter);
-v1.use("/agriculture-inventory",   agricultureInventoryRouter);
-v1.use("/schools",                 schoolRoutes);
-v1.use("/infra-projects",          infraProjectRoutes);
-v1.use("/livestock",               livestockRoutes);
-v1.use("/disaster-incidents",      disasterIncidentRoutes);
-v1.use("/relief-applications",     reliefApplicationRoutes);
-v1.use("/admin-documents",         adminDocumentRoutes);
-v1.use("/approvals",               approvalRoutes);
-v1.use("/ledger",                  ledgerRoutes);
-// Phase 3 — Depth
-// Removed legacy budget-allocations and revenue-collections endpoints
-v1.use("/sifaris",                 sifarisRoutes);
-v1.use("/subscriptions",           subscriptionsRoutes);
-v1.use("/vital-events",            vitalEventsRoutes);
-v1.use("/tax-engine",              taxEngineRoutes);
-v1.use("/candidate",                 citizenPortalRoutes);
 
 app.use("/api/v1", v1);
 

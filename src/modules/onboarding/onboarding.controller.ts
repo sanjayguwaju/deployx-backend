@@ -1,10 +1,8 @@
 import { Request, Response } from "express";
 import { body } from "express-validator";
 import { Tenant } from "../../models/Tenant";
-import { Office } from "../../models/Office";
 import { Role } from "../../models/Role";
 import { User } from "../../models/User";
-import { SYSTEM_ROLES } from "../../utils/seed";
 import { sendSuccess, sendError } from "../../utils/response";
 import { signAccessToken, signRefreshToken } from "../../utils/jwt";
 import bcrypt from "bcryptjs";
@@ -46,23 +44,17 @@ export async function registerTenant(req: Request, res: Response) {
       isActive: true,
     });
 
-    // 4. Create Offices
-    await Office.insertMany(
-      Array.from({ length: 9 }, (_, i) => ({
-        tenantId: tenant._id,
-        officeNumber: i + 1,
-      }))
-    );
+    // 4. Create Role
+    const adminRole = await Role.create({
+      name: "Platform Admin",
+      slug: "platform_admin",
+      description: "Full system access",
+      permissions: [{ subject: "all", action: "manage" }],
+      tenantId: tenant._id,
+      isSystem: true
+    });
 
-    // 5. Create Roles
-    const createdRoles: Record<string, any> = {};
-    for (const roleData of SYSTEM_ROLES) {
-      const role = await Role.create({ ...roleData, tenantId: tenant._id });
-      createdRoles[roleData.slug] = role;
-    }
-
-    // 6. Create Admin User (Platform Admin or CAO)
-    const adminRole = createdRoles["platform_admin"]; // Give them full access to their tenant
+    // 5. Create Admin User (Platform Admin)
     const user = await User.create({
       name: adminName,
       email: adminEmail,

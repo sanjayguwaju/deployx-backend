@@ -40,7 +40,7 @@ export interface ICandidate extends Document {
   address?: {
     province?: string;
     district?: string;
-    municipality?: string;
+    city?: string;
     office?: string;
   };
   profession?: string;
@@ -101,7 +101,7 @@ const candidateSchema = new Schema<ICandidate>(
     address: {
       province: String,
       district: String,
-      municipality: String,
+      city: String,
       office: String,
     },
     profession: String,
