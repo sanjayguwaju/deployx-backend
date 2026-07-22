@@ -49,7 +49,7 @@ export async function registerTenant(req: Request, res: Response) {
       name: "Platform Admin",
       slug: "platform_admin",
       description: "Full system access",
-      permissions: [{ subject: "all", action: "manage" }],
+      permissions: [{ module: "all", action: "manage" }],
       tenantId: tenant._id,
       isSystem: true
     });
