@@ -11,10 +11,12 @@ import { WhatsappInstance } from "../models/WhatsappInstance";
 import { WhatsappService } from "../utils/whatsapp.service";
 
 
+import { createBullRedisClient } from "../config/redis";
+
 const workflowQueue = new Queue("workflow-automation", {
-  redis: env.REDIS_URL
-    ? env.REDIS_URL
-    : { host: env.REDIS_HOST, port: env.REDIS_PORT },
+  createClient: function (type) {
+    return createBullRedisClient();
+  },
 });
 
 // Phase 3 Automation: 

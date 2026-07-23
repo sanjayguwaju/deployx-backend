@@ -5,10 +5,12 @@ import { Medical } from "../models/Medical";
 import { Visa } from "../models/Visa";
 import { License } from "../models/License";
 
+import { createBullRedisClient } from "../config/redis";
+
 const expiryQueue = new Queue("expiry-jobs", {
-  redis: env.REDIS_URL
-    ? env.REDIS_URL
-    : { host: env.REDIS_HOST, port: env.REDIS_PORT },
+  createClient: function (type) {
+    return createBullRedisClient();
+  },
 });
 
 // Run daily at midnight
