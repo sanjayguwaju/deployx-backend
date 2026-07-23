@@ -1,5 +1,5 @@
 {
-  "name": "deployx-backend",
+  "name": "deployxosapi",
   "version": "1.0.0",
   "description": "DeployX — Express + Mongoose + CASL",
   "main": "dist/server.js",
