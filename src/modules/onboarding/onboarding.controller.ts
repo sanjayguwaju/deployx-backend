@@ -16,10 +16,12 @@ export const registerTenantValidation = [
   body("adminName").notEmpty().withMessage("Admin name is required"),
   body("adminEmail").isEmail().normalizeEmail().withMessage("Valid admin email is required"),
   body("adminPassword").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+  body("adminPhone").optional().isMobilePhone("any").withMessage("Invalid phone number"),
+  body("plan").optional().isIn(["starter", "pro", "enterprise"]).withMessage("Invalid plan"),
 ];
 
 export async function registerTenant(req: Request, res: Response) {
-  const { name, subdomain, adminName, adminEmail, adminPassword } = req.body;
+  const { name, subdomain, adminName, adminEmail, adminPassword, adminPhone, plan } = req.body;
 
   try {
     // 1. Check if subdomain already exists
@@ -35,12 +37,20 @@ export async function registerTenant(req: Request, res: Response) {
     }
 
     // 3. Create Tenant
+    const planMap: Record<string, string> = { pro: "professional", starter: "starter", enterprise: "enterprise" };
+    const resolvedPlan = planMap[plan] ?? "starter";
+
     const tenant = await Tenant.create({
       name,
       code: subdomain.toUpperCase(),
       subdomain,
       type: "rural",
       totalOffices: 9,
+      contactEmail: adminEmail,
+      contactPhone: adminPhone,
+      plan: resolvedPlan,
+      status: "trial",
+      trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       isActive: true,
     });
 

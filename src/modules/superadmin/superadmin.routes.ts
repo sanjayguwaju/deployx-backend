@@ -14,7 +14,8 @@ import {
   updateTicket,
   getApiKeys,
   createApiKey,
-  deleteApiKey
+  deleteApiKey,
+  getAllSubscriptions,
 } from "./superadmin.controller";
 
 const router = Router();
@@ -41,5 +42,7 @@ router.patch("/support/tickets/:id", authorize("update", "Tenant"), updateTicket
 router.get("/api-keys", authorize("read", "Tenant"), getApiKeys);
 router.post("/api-keys", authorize("create", "Tenant"), createApiKey);
 router.delete("/api-keys/:id", authorize("delete", "Tenant"), deleteApiKey);
+
+router.get("/subscriptions/all", authorize("read", "Tenant"), getAllSubscriptions);
 
 export default router;

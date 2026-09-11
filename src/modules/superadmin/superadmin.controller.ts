@@ -170,3 +170,29 @@ export async function deleteApiKey(req: AuthRequest, res: Response) {
   await ApiKey.findOneAndDelete({ _id: req.params.id, tenantId: req.user!.tenantId });
   return sendSuccess(res, null, "API key deleted");
 }
+
+// GET /api/v1/admin/subscriptions/all  — for PlatformBilling page
+export async function getAllSubscriptions(req: AuthRequest, res: Response) {
+  try {
+    const subs = await Subscription.find()
+      .populate("tenantId", "name type district status")
+      .populate("planId", "name price billingCycle")
+      .sort({ createdAt: -1 });
+
+    // Re-shape so frontend fields match (it reads .municipalityId, .planName, .price, .startDate, .endDate)
+    const data = subs.map((s: any) => ({
+      _id: s._id,
+      municipalityId: s.tenantId,           // frontend reads `.municipalityId`
+      planName: s.planId?.name ?? "—",
+      price: s.planId?.price ?? 0,
+      status: s.status,
+      startDate: s.currentPeriodStart,
+      endDate: s.currentPeriodEnd,
+      createdAt: s.createdAt,
+    }));
+
+    return sendSuccess(res, data);
+  } catch (error: any) {
+    return sendError(res, 500, "Failed to fetch subscriptions", [error.message]);
+  }
+}

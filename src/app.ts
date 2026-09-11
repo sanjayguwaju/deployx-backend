@@ -50,6 +50,8 @@ import systemRoutes from "./modules/system/system.routes";
 import featureFlagsRoutes from "./modules/feature-flags/feature-flags.routes";
 import onboardingRoutes from "./modules/onboarding/onboarding.routes";
 import whatsappRoutes from "./modules/whatsapp/whatsapp.routes";
+import approvalsRoutes from "./modules/approvals/approvals.routes";
+import subscriptionsRoutes from "./modules/subscriptions/subscriptions.routes";
 
 const app = express();
 
@@ -146,6 +148,12 @@ v1.use("/ai",                aiRoutes);
 
 // Phase 9: SaaS Admin Panel
 v1.use("/admin",             superadminRoutes);
+
+// Approvals (used by useApprovals hook and Approvals page)
+v1.use("/approvals",         approvalsRoutes);
+
+// Subscriptions (used by PlatformBilling page — /api/v1/subscriptions/all)
+v1.use("/subscriptions",     subscriptionsRoutes);
 
 v1.use("/dashboard",         dashboardRoutes);
 v1.use("/audit-logs",        auditRoutes);

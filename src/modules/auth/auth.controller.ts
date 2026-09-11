@@ -37,8 +37,9 @@ export async function login(req: AuthRequest, res: Response) {
     if (!tenant) {
       return sendError(res, 404, "Tenant not found");
     }
-    if (tenant.status !== "approved") {
-      return sendError(res, 403, "Your workspace is pending administration approval.");
+    const allowedStatuses = ["approved", "trial", "active"];
+    if (!allowedStatuses.includes(tenant.status)) {
+      return sendError(res, 403, "Your workspace is suspended or pending administration approval.");
     }
     tenantTenantId = tenant._id;
   }
