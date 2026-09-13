@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json package-lock.json* pnpm-lock.yaml* ./
 
 # Install dependencies (fallback to npm if pnpm is not preferred locally, but npm is standard)
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 # Copy source files
 COPY . .
@@ -24,7 +24,7 @@ WORKDIR /app
 COPY package.json package-lock.json* pnpm-lock.yaml* ./
 
 # Install only production dependencies
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 # Copy compiled files from builder
 COPY --from=builder /app/dist ./dist
