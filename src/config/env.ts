@@ -19,7 +19,11 @@ export const env = {
   SMTP_PASS: process.env.SMTP_PASS ?? "",
   SMS_API_URL: process.env.SMS_API_URL ?? "",
   SMS_TOKEN: process.env.SMS_TOKEN ?? "",
-  ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS ?? "http://localhost:3000").split(","),
+  ALLOWED_ORIGINS: Array.from(new Set([
+    ...(process.env.ALLOWED_ORIGINS ?? "http://localhost:3000").split(",").map((o) => o.trim().replace(/\/+$/, "")),
+    "https://depolyx.hireyourteacher.com",
+    "https://deployx.hireyourteacher.com",
+  ])).filter(Boolean),
   MAX_FILE_SIZE_MB: parseInt(process.env.MAX_FILE_SIZE_MB ?? "10", 10),
   ESEWA_MERCHANT_ID: process.env.ESEWA_MERCHANT_ID ?? "EPAYTEST",
   ESEWA_SECRET: process.env.ESEWA_SECRET ?? "8gBm/:&EnhH.1/q",
