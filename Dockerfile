@@ -36,6 +36,8 @@ RUN npm ci --omit=dev --ignore-scripts
 # Copy compiled files from builder
 COPY --from=builder /app/dist ./dist
 
+ENV PORT=3000
+
 # Start the application
-EXPOSE 8081
+EXPOSE 3000
 CMD ["npm", "start"]
