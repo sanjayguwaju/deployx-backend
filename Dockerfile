@@ -3,6 +3,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Force development environment so devDependencies (like typescript) are installed
+# even if the deployment platform injects NODE_ENV=production at build time.
+ENV NODE_ENV=development
+
 # Copy package files
 COPY package.json package-lock.json* pnpm-lock.yaml* ./
 
@@ -19,6 +23,9 @@ RUN npm run build
 FROM node:20-alpine
 
 WORKDIR /app
+
+# Force production environment for runtime
+ENV NODE_ENV=production
 
 # Copy only package files for production install
 COPY package.json package-lock.json* pnpm-lock.yaml* ./
