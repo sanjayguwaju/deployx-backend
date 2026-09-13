@@ -3,7 +3,7 @@ dotenv.config();
 
 export const env = {
   NODE_ENV: process.env.NODE_ENV ?? "development",
-  PORT: parseInt(process.env.PORT ?? "4000", 10),
+  PORT: parseInt(process.env.PORT ?? "8081", 10),
   MONGODB_URI: process.env.MONGODB_URI ?? "mongodb://localhost:27017/palikaos",
   JWT_SECRET: process.env.JWT_SECRET ?? "change-me-secret",
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET ?? "change-me-refresh",
