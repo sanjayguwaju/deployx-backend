@@ -9,6 +9,19 @@ import { Request } from "express";
 import { generatePdf } from "../../utils/pdf.service";
 import { Tenant } from "../../models/Tenant";
 
+import { Demand } from "../../models/Demand";
+
+export async function getContracts(req: AuthRequest, res: Response) {
+  const contracts = await Contract.find({ tenantId: req.user!.tenantId })
+    .populate("candidateId", "firstName lastName passportNumber phone")
+    .populate("employerId", "companyName country")
+    .populate("demandId", "trackingNumber profession country")
+    .populate("templateId", "name type")
+    .sort({ createdAt: -1 });
+
+  return sendSuccess(res, contracts);
+}
+
 export async function getTemplates(req: AuthRequest, res: Response) {
   const templates = await ContractTemplate.find({ tenantId: req.user!.tenantId });
   return sendSuccess(res, templates);
@@ -20,30 +33,53 @@ export async function generateContract(req: AuthRequest, res: Response) {
   const template = await ContractTemplate.findOne({ _id: templateId, tenantId: req.user!.tenantId });
   if (!template) return sendError(res, 404, "Template not found");
 
-  // In a real implementation:
-  // 1. Fetch Candidate/Demand
-  // 2. Run Mustache/Handlebars on `template.templateBody`
-  // 3. Generate PDF buffer using Puppeteer/wkhtmltopdf
-  // 4. Upload to R2 and get pdfUrl
-  const mockPdfUrl = `https://r2.deployx.internal/${req.user!.tenantId}/contracts/generated_${Date.now()}.pdf`;
+  let resolvedEmployerId = employerId;
+  if (!resolvedEmployerId && demandId) {
+    const demand = await Demand.findById(demandId);
+    if (demand) resolvedEmployerId = demand.employerId;
+  }
+
+  const mockPdfUrl = `/api/v1/contracts/mock.pdf`;
 
   const contract = await Contract.create({
     tenantId: req.user!.tenantId,
     templateId,
     candidateId,
-    employerId,
+    employerId: resolvedEmployerId,
     demandId,
     pdfUrl: mockPdfUrl,
     signatureStatus: "draft",
-    signatures: [] // Initialize empty
+    signatures: []
   });
+
+  const populated = await Contract.findById(contract._id)
+    .populate("candidateId", "firstName lastName passportNumber phone")
+    .populate("employerId", "companyName country")
+    .populate("demandId", "trackingNumber profession country")
+    .populate("templateId", "name type");
 
   await AuditLog.create({
     tenantId: req.user!.tenantId, actorId: req.user!.id,
     module: "contracts", action: "CREATE", entityType: "Contract", entityId: contract._id
   });
 
-  return sendSuccess(res, contract, "Contract generated successfully", 201);
+  return sendSuccess(res, populated || contract, "Contract generated successfully", 201);
+}
+
+export async function deleteContract(req: AuthRequest, res: Response) {
+  const contract = await Contract.findOneAndDelete({ _id: req.params.id, tenantId: req.user!.tenantId });
+  if (!contract) return sendError(res, 404, "Contract not found");
+
+  await AuditLog.create({
+    tenantId: req.user!.tenantId,
+    actorId: req.user!.id,
+    module: "contracts",
+    action: "DELETE",
+    entityType: "Contract",
+    entityId: contract._id,
+  });
+
+  return sendSuccess(res, null, "Contract deleted successfully");
 }
 
 export async function sendContract(req: AuthRequest, res: Response) {

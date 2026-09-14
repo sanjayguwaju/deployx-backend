@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authenticate } from "../../middleware/auth.middleware";
 import { authorize } from "../../middleware/authorize.middleware";
 import { 
+  getContracts,
   getTemplates, 
   generateContract, 
   sendContract, 
@@ -9,7 +10,8 @@ import {
   getContractStatus,
   getPublicContract,
   signPublicContract,
-  downloadContractPdf
+  downloadContractPdf,
+  deleteContract
 } from "./contracts.controller";
 
 const router = Router();
@@ -21,10 +23,12 @@ router.get("/:id/pdf", downloadContractPdf);
 
 router.use(authenticate);
 
+router.get("/", authorize("read", "Contract"), getContracts);
 router.get("/templates", authorize("read", "ContractTemplate"), getTemplates);
 router.post("/", authorize("create", "Contract"), generateContract);
 router.post("/:id/send", authorize("update", "Contract"), sendContract);
 router.post("/:id/sign", signContract); // This allows portal users to sign. Internal scoping inside controller.
 router.get("/:id/status", authorize("read", "Contract"), getContractStatus);
+router.delete("/:id", authorize("delete", "Contract"), deleteContract);
 
 export default router;
