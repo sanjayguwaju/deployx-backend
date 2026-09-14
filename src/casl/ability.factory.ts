@@ -100,6 +100,7 @@ export function buildAbility(user: AuthUser, permissions: { module: string; acti
   }
 
   // ── Identity-based supplementary rules ──────────────────────────────────────
+  can("read", "Dashboard");
 
   // Phase 1 specific role constraints
   if (roleSet.has("hr") || roleSet.has("recruiter")) {
