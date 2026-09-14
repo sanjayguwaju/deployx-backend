@@ -29,7 +29,9 @@ export const loginValidation = [
 
 export async function login(req: AuthRequest, res: Response) {
   const { email, password, rememberMe } = req.body;
-  const subdomain = req.headers["x-tenant-subdomain"] as string;
+  const rawSubdomain = (req.headers["x-tenant-subdomain"] as string)?.toLowerCase()?.trim();
+  const isSystemDomain = !rawSubdomain || ["app", "www", "deployx", "deployxos", "depolyx", "localhost"].includes(rawSubdomain);
+  const subdomain = isSystemDomain ? null : rawSubdomain;
 
   let tenantTenantId: any = null;
   if (subdomain) {
@@ -37,7 +39,7 @@ export async function login(req: AuthRequest, res: Response) {
     if (!tenant) {
       return sendError(res, 404, "Tenant not found");
     }
-    if (tenant.status !== "approved") {
+    if (tenant.status === "pending" || tenant.status === "rejected" || tenant.status === "suspended") {
       return sendError(res, 403, "Your workspace is pending administration approval.");
     }
     tenantTenantId = tenant._id;
