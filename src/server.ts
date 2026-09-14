@@ -16,15 +16,31 @@ async function start() {
   const server = createServer(app);
   initSocket(server);
 
-  server.listen(env.PORT, () => {
-    logger.info(`PalikaOS API started on port ${env.PORT}`);
+  const primaryPort = env.PORT || 8081;
+  server.listen(primaryPort, () => {
+    logger.info(`DeployX API started on primary port ${primaryPort}`);
     logger.info(`Environment: ${env.NODE_ENV}`);
-    logger.info(`Health: http://localhost:${env.PORT}/health`);
-    logger.info(`API: http://localhost:${env.PORT}/api/v1`);
+    logger.info(`Health: http://localhost:${primaryPort}/health`);
+    logger.info(`API: http://localhost:${primaryPort}/api/v1`);
   });
+
+  // Dual-listen on common deployment ports to prevent 502 Bad Gateway from Coolify port mismatches
+  const altServers: any[] = [];
+  const candidatePorts = [3000, 8081, 4000].filter((p) => p !== primaryPort);
+  for (const altPort of candidatePorts) {
+    const altServer = createServer(app);
+    altServer.listen(altPort, () => {
+      logger.info(`DeployX API also listening on port ${altPort}`);
+    }).on("error", (err: any) => {
+      logger.warn(`Port ${altPort} not bound (non-fatal): ${err.message}`);
+    });
+    altServers.push(altServer);
+  }
 
   process.on("SIGTERM", async () => {
     logger.info("SIGTERM received — shutting down gracefully");
+    server.close();
+    altServers.forEach(s => s.close());
     await redis.quit().catch(() => {});
     process.exit(0);
   });

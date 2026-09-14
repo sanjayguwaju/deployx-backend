@@ -40,4 +40,6 @@ ENV PORT=8081
 
 # Start the application
 EXPOSE 8081
+EXPOSE 3000
+EXPOSE 4000
 CMD ["npm", "start"]
