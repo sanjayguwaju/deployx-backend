@@ -7,14 +7,21 @@ export interface ITenant extends Document {
   subdomain: string;
   district?: string;
   province?: string;
-  type: "rural" | "urban" | "sub-metropolitan" | "metropolitan";
-  totalOffices: number;
+  type?: string;
+  totalOffices?: number;
   contactEmail?: string;
   contactPhone?: string;
   address?: string;
   logoUrl?: string;
+  faviconUrl?: string;
+  licenseNumber?: string;
+  tagline?: string;
+  customDomain?: string;
+  emailSenderName?: string;
+  hidePoweredBy?: boolean;
   themeConfig?: {
     primaryColor: string;
+    secondaryColor?: string;
   };
   portalSettings?: {
     agentLeaderboardEnabled: boolean;
@@ -44,14 +51,21 @@ const tenantSchema = new Schema<ITenant>(
     subdomain: { type: String, required: true, unique: true, lowercase: true, trim: true },
     district: String,
     province: String,
-    type: { type: String, enum: ["rural","urban","sub-metropolitan","metropolitan"], default: "rural" },
-    totalOffices: { type: Number, default: 9 },
+    type: { type: String, default: "agency" },
+    totalOffices: { type: Number, default: 1 },
     contactEmail: String,
     contactPhone: String,
     address: String,
     logoUrl: String,
+    faviconUrl: String,
+    licenseNumber: String,
+    tagline: String,
+    customDomain: String,
+    emailSenderName: String,
+    hidePoweredBy: { type: Boolean, default: false },
     themeConfig: {
-      primaryColor: { type: String, default: "#1C2434" } // Default tailwind brand color (or any specific hex)
+      primaryColor: { type: String, default: "#1C2434" },
+      secondaryColor: { type: String, default: "#2563EB" }
     },
     portalSettings: {
       agentLeaderboardEnabled: { type: Boolean, default: false }

@@ -134,7 +134,9 @@ export async function deleteTenant(req: AuthRequest, res: Response) {
 export async function getTenantBranding(req: Request, res: Response) {
   try {
     const { subdomain } = req.params;
-    const tenant = await Tenant.findOne({ subdomain: subdomain.toLowerCase() }).select("name logoUrl themeConfig");
+    const tenant = await Tenant.findOne({ subdomain: subdomain.toLowerCase() }).select(
+      "name logoUrl faviconUrl licenseNumber tagline customDomain emailSenderName contactEmail contactPhone address hidePoweredBy themeConfig"
+    );
     
     if (!tenant) {
       return sendError(res, 404, "Tenant not found");
@@ -143,7 +145,17 @@ export async function getTenantBranding(req: Request, res: Response) {
     return sendSuccess(res, {
       name: tenant.name,
       logoUrl: tenant.logoUrl || null,
-      primaryColor: tenant.themeConfig?.primaryColor || "#1C2434"
+      faviconUrl: tenant.faviconUrl || null,
+      licenseNumber: tenant.licenseNumber || null,
+      tagline: tenant.tagline || null,
+      customDomain: tenant.customDomain || null,
+      emailSenderName: tenant.emailSenderName || null,
+      contactEmail: tenant.contactEmail || null,
+      contactPhone: tenant.contactPhone || null,
+      address: tenant.address || null,
+      hidePoweredBy: tenant.hidePoweredBy ?? false,
+      primaryColor: tenant.themeConfig?.primaryColor || "#1C2434",
+      secondaryColor: tenant.themeConfig?.secondaryColor || "#2563EB"
     });
   } catch (error) {
     return sendError(res, 500, "Failed to fetch tenant branding");
@@ -152,16 +164,40 @@ export async function getTenantBranding(req: Request, res: Response) {
 
 export async function updateTenantSettings(req: AuthRequest, res: Response) {
   try {
-    if (!req.user || !req.user.roles.includes("tenant_admin")) {
+    if (!req.user || (!req.user.roles.includes("tenant_admin") && !req.user.roles.includes("platform_admin"))) {
       return sendError(res, 403, "Forbidden: Only Tenant Admins can update settings");
     }
 
-    const { logoUrl, primaryColor, name } = req.body;
+    const { 
+      logoUrl, 
+      faviconUrl,
+      primaryColor, 
+      secondaryColor,
+      name,
+      licenseNumber,
+      tagline,
+      customDomain,
+      emailSenderName,
+      contactEmail,
+      contactPhone,
+      address,
+      hidePoweredBy
+    } = req.body;
     
     const updateData: any = {};
     if (logoUrl !== undefined) updateData.logoUrl = logoUrl;
+    if (faviconUrl !== undefined) updateData.faviconUrl = faviconUrl;
     if (primaryColor !== undefined) updateData["themeConfig.primaryColor"] = primaryColor;
+    if (secondaryColor !== undefined) updateData["themeConfig.secondaryColor"] = secondaryColor;
     if (name !== undefined) updateData.name = name;
+    if (licenseNumber !== undefined) updateData.licenseNumber = licenseNumber;
+    if (tagline !== undefined) updateData.tagline = tagline;
+    if (customDomain !== undefined) updateData.customDomain = customDomain;
+    if (emailSenderName !== undefined) updateData.emailSenderName = emailSenderName;
+    if (contactEmail !== undefined) updateData.contactEmail = contactEmail;
+    if (contactPhone !== undefined) updateData.contactPhone = contactPhone;
+    if (address !== undefined) updateData.address = address;
+    if (hidePoweredBy !== undefined) updateData.hidePoweredBy = hidePoweredBy;
 
     const tenant = await Tenant.findByIdAndUpdate(
       req.user.tenantId,
@@ -169,7 +205,7 @@ export async function updateTenantSettings(req: AuthRequest, res: Response) {
       { new: true }
     );
 
-    return sendSuccess(res, tenant, "Tenant settings updated successfully");
+    return sendSuccess(res, tenant, "Agency branding & white-label settings updated successfully");
   } catch (error) {
     return sendError(res, 500, "Failed to update tenant settings");
   }
