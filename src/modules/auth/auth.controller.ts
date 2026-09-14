@@ -104,7 +104,7 @@ export async function login(req: AuthRequest, res: Response) {
   }
 
   return sendSuccess(res, {
-    user: { id: authUser.id, name: authUser.name, email: authUser.email, roles: authUser.roles, permissions: authUser.permissions },
+    user: { id: authUser.id, name: authUser.name, email: authUser.email, roles: authUser.roles, rolesSlugs: authUser.roles, permissions: authUser.permissions },
     accessToken,
   }, "Login successful");
 }
